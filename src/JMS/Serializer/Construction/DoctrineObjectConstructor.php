@@ -66,7 +66,9 @@ class DoctrineObjectConstructor implements ObjectConstructorInterface
         // Managed entity, check for proxy load
         if (!is_array($data)) {
             // Single identifier, load proxy
-            return $objectManager->getReference($metadata->name, $data);
+            $object = $objectManager->getReference($metadata->name, $data);
+            $objectManager->initializeObject($object);
+            return $object;
         }
 
         // Fallback to default constructor if missing identifier(s)
