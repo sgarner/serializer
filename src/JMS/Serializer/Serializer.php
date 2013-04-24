@@ -120,4 +120,19 @@ class Serializer implements SerializerInterface
 
         return $visitorResult;
     }
+
+    public function translate(array $data, $type, $format)
+    {
+        $visitor = $this->serializationVisitors->get($format)->get();
+        $namingStrategy = $visitor->getNamingStrategy(); /** @var $namingStrategy \JMS\Serializer\Naming\PropertyNamingStrategyInterface */
+
+        $output = array();
+        foreach ($data as $key => $value) {
+            $meta = new \JMS\Serializer\Metadata\PropertyMetadata($type, $key);
+
+            $output[$namingStrategy->translateName($meta)] = $value;
+        }
+
+        return $output;
+    }
 }
