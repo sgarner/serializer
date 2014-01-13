@@ -2,12 +2,13 @@ XML Reference
 -------------
 ::
 
-    <!-- MyBundle\Resources\config\serializer\ClassName.xml -->
+    <!-- MyBundle\Resources\config\serializer\Fully.Qualified.ClassName.xml -->
     <?xml version="1.0" encoding="UTF-8" ?>
     <serializer>
         <class name="Fully\Qualified\ClassName" exclusion-policy="ALL" xml-root-name="foo-bar" exclude="true"
             accessor-order="custom" custom-accessor-order="propertyName1,propertyName2,...,propertyNameN"
             access-type="public_method" discriminator-field-name="type">
+            <xml-namespace prefix="atom" uri="http://www.w3.org/2005/Atom"/>
             <discriminator-class value="some-value">ClassName</discriminator-class>
             <property name="some-property"
                       exclude="true"
@@ -25,12 +26,15 @@ XML Reference
                       groups="foo,bar"
                       xml-key-value-pairs="true"
                       xml-attribute-map="true"
+                      max-depth="2"
+                      xml-namespace="http://www.w3.org/2005/Atom"
             >
                 <!-- You can also specify the type as element which is necessary if
                      your type contains "<" or ">" characters. -->
                 <type><![CDATA[]]></type>
                 <xml-list inline="true" entry-name="foobar" />
                 <xml-map inline="true" key-attribute-name="foo" entry-name="bar" />
+                <xml-element cdata="false" />
             </property>
             <callback-method name="foo" type="pre-serialize" />
             <callback-method name="bar" type="post-serialize" />

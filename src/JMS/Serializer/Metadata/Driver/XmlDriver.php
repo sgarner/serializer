@@ -2,13 +2,13 @@
 
 /*
  * Copyright 2013 Johannes M. Schmitt <schmittjoh@gmail.com>
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -79,6 +79,20 @@ class XmlDriver extends AbstractFileDriver
             $metadata->setDiscriminator($discriminatorFieldName, $discriminatorMap);
         }
 
+        foreach ($elem->xpath('./xml-namespace') as $xmlNamespace) {
+            if (!isset($xmlNamespace->attributes()->uri)) {
+                throw new RuntimeException('The prefix attribute must be set for all xml-namespace elements.');
+            }
+
+            if (isset($xmlNamespace->attributes()->prefix)) {
+                $prefix = (string) $xmlNamespace->attributes()->prefix;
+            } else {
+                $prefix = null;
+            }
+
+            $metadata->registerNamespace((string) $xmlNamespace->attributes()->uri, $prefix);
+        }
+
         foreach ($elem->xpath('./virtual-property') as $method) {
             if (!isset($method->attributes()->method)) {
                 throw new RuntimeException('The method attribute must be set for all virtual-property elements.');
@@ -141,6 +155,10 @@ class XmlDriver extends AbstractFileDriver
                         $pMetadata->groups =  preg_split('/\s*,\s*/', (string) $groups);
                     }
 
+                    if (null !== $xmlNamespace = $pElem->attributes()->{'xml-namespace'}) {
+                        $pMetadata->xmlNamespace = (string) $xmlNamespace;
+                    }
+                    
                     if (isset($pElem->{'xml-list'})) {
                         $pMetadata->xmlCollection = true;
 
@@ -171,6 +189,13 @@ class XmlDriver extends AbstractFileDriver
                         }
                     }
 
+                    if (isset($pElem->{'xml-element'})) {
+                        $colConfig = $pElem->{'xml-element'};
+                        if (isset($colConfig->attributes()->cdata)) {
+                            $pMetadata->xmlElementCData = 'true' === (string) $colConfig->attributes()->cdata;
+                        }
+                    }
+
                     if (isset($pElem->attributes()->{'xml-attribute'})) {
                         $pMetadata->xmlAttribute = 'true' === (string) $pElem->attributes()->{'xml-attribute'};
                     }
@@ -185,6 +210,10 @@ class XmlDriver extends AbstractFileDriver
 
                     if (isset($pElem->attributes()->{'xml-key-value-pairs'})) {
                         $pMetadata->xmlKeyValuePairs = 'true' === (string) $pElem->attributes()->{'xml-key-value-pairs'};
+                    }
+
+                    if (isset($pElem->attributes()->{'max-depth'})) {
+                        $pMetadata->maxDepth = (int) $pElem->attributes()->{'max-depth'};
                     }
 
                     //we need read-only before setter and getter set, because that method depends on flag being set

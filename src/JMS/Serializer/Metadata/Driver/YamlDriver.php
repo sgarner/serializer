@@ -2,13 +2,13 @@
 
 /*
  * Copyright 2013 Johannes M. Schmitt <schmittjoh@gmail.com>
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -54,6 +54,14 @@ class YamlDriver extends AbstractFileDriver
 
         if (isset($config['xml_root_name'])) {
             $metadata->xmlRootName = (string) $config['xml_root_name'];
+        }
+
+        if (array_key_exists('xml_namespaces', $config) ) {
+
+            foreach ( $config['xml_namespaces'] as $prefix => $uri) {
+                $metadata->registerNamespace($uri, $prefix);
+            }
+
         }
 
         if (isset($config['discriminator'])) {
@@ -132,6 +140,10 @@ class YamlDriver extends AbstractFileDriver
                         $pMetadata->groups = $pConfig['groups'];
                     }
 
+                    if (isset($pConfig['xml_namespace'])) {
+                        $pMetadata->xmlNamespace = (string) $pConfig['xml_namespace'];
+                    }
+
                     if (isset($pConfig['xml_list'])) {
                         $pMetadata->xmlCollection = true;
 
@@ -162,12 +174,19 @@ class YamlDriver extends AbstractFileDriver
                         }
                     }
 
+                    if (isset($pConfig['xml_element'])) {
+                        $colConfig = $pConfig['xml_element'];
+                        if (isset($colConfig['cdata'])) {
+                            $pMetadata->xmlElementCData = (Boolean) $colConfig['cdata'];
+                        }
+                    }
+
                     if (isset($pConfig['xml_attribute'])) {
                         $pMetadata->xmlAttribute = (Boolean) $pConfig['xml_attribute'];
                     }
 
                     if (isset($pConfig['xml_attribute_map'])) {
-                        $pMetadata->xmlAttribute = (Boolean) $pConfig['xml_attribute_map'];
+                        $pMetadata->xmlAttributeMap = (Boolean) $pConfig['xml_attribute_map'];
                     }
 
                     if (isset($pConfig['xml_value'])) {
@@ -193,6 +212,9 @@ class YamlDriver extends AbstractFileDriver
                         $pMetadata->inline = (Boolean) $pConfig['inline'];
                     }
 
+                    if (isset($pConfig['max_depth'])) {
+                        $pMetadata->maxDepth = (int) $pConfig['max_depth'];
+                    }
                 }
                 if ((ExclusionPolicy::NONE === $exclusionPolicy && !$isExclude)
                 || (ExclusionPolicy::ALL === $exclusionPolicy && $isExpose)) {

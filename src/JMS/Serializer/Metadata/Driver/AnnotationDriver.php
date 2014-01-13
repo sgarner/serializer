@@ -2,13 +2,13 @@
 
 /*
  * Copyright 2013 Johannes M. Schmitt <schmittjoh@gmail.com>
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,10 +26,12 @@ use JMS\Serializer\Annotation\Accessor;
 use JMS\Serializer\Annotation\AccessType;
 use JMS\Serializer\Annotation\XmlMap;
 use JMS\Serializer\Annotation\XmlRoot;
+use JMS\Serializer\Annotation\XmlNamespace;
 use JMS\Serializer\Annotation\XmlAttribute;
 use JMS\Serializer\Annotation\XmlList;
 use JMS\Serializer\Annotation\XmlValue;
 use JMS\Serializer\Annotation\XmlKeyValuePairs;
+use JMS\Serializer\Annotation\XmlElement;
 use JMS\Serializer\Annotation\PostSerialize;
 use JMS\Serializer\Annotation\PostDeserialize;
 use JMS\Serializer\Annotation\PreSerialize;
@@ -52,6 +54,7 @@ use JMS\Serializer\Metadata\VirtualPropertyMetadata;
 use JMS\Serializer\Exception\InvalidArgumentException;
 use JMS\Serializer\Annotation\XmlAttributeMap;
 use Metadata\Driver\DriverInterface;
+use JMS\Serializer\Annotation\MaxDepth;
 
 class AnnotationDriver implements DriverInterface
 {
@@ -78,6 +81,8 @@ class AnnotationDriver implements DriverInterface
                 $exclusionPolicy = $annot->policy;
             } elseif ($annot instanceof XmlRoot) {
                 $classMetadata->xmlRootName = $annot->name;
+            } elseif ($annot instanceof XmlNamespace) {
+                $classMetadata->registerNamespace($annot->uri, $annot->prefix);
             } elseif ($annot instanceof Exclude) {
                 $excludeAll = true;
             } elseif ($annot instanceof AccessType) {
@@ -153,6 +158,10 @@ class AnnotationDriver implements DriverInterface
                         $isExclude = true;
                     } elseif ($annot instanceof Type) {
                         $propertyMetadata->setType($annot->name);
+                    } elseif ($annot instanceof XmlElement) {
+                        $propertyMetadata->xmlAttribute = false;
+                        $propertyMetadata->xmlElementCData = $annot->cdata;
+                        $propertyMetadata->xmlNamespace = $annot->namespace;
                     } elseif ($annot instanceof XmlList) {
                         $propertyMetadata->xmlCollection = true;
                         $propertyMetadata->xmlCollectionInline = $annot->inline;
@@ -166,8 +175,12 @@ class AnnotationDriver implements DriverInterface
                         $propertyMetadata->xmlKeyValuePairs = true;
                     } elseif ($annot instanceof XmlAttribute) {
                         $propertyMetadata->xmlAttribute = true;
+                        $propertyMetadata->xmlNamespace = $annot->namespace;
                     } elseif ($annot instanceof XmlValue) {
                         $propertyMetadata->xmlValue = true;
+                        $propertyMetadata->xmlElementCData = $annot->cdata;
+                    } elseif ($annot instanceof XmlElement) {
+                        $propertyMetadata->xmlElementCData = $annot->cdata;
                     } elseif ($annot instanceof AccessType) {
                         $accessType = $annot->type;
                     } elseif ($annot instanceof ReadOnly) {
@@ -189,6 +202,8 @@ class AnnotationDriver implements DriverInterface
                         $propertyMetadata->inline = true;
                     } elseif ($annot instanceof XmlAttributeMap) {
                         $propertyMetadata->xmlAttributeMap = true;
+                    } elseif ($annot instanceof MaxDepth) {
+                        $propertyMetadata->maxDepth = $annot->depth;
                     }
                 }
 
